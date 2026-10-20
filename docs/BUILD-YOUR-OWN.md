@@ -1,116 +1,66 @@
-# Build your own AI software company
+# Build your own (beginner‑friendly)
 
-A practical, tool‑agnostic guide to standing up a role‑based AI coding company like the one
-described in the [README](../README.md). Swap any specific tool for your preferred equivalent —
-the **patterns** are the point, not the brand names.
+You don't need to be an expert. Here's the simple version. Swap any tool for one you prefer — the
+**idea** is what matters, not the brand names.
 
-> ⚠️ **Safety first.** You are about to let AI agents run with real credentials and open pull
-> requests. Do the sandbox and the usage gate **before** you give any agent a token. Never put
-> secrets in a repo.
+> ⚠️ **One golden rule:** set up the "don't overspend" check and the safety sandbox **before** you
+> give any AI teammate a real password or key. Never put secrets in a public folder.
 
 ---
 
-## 0. What you need
+## What you'll need
 
-| Piece | Role | Example options |
-|-------|------|-----------------|
-| A host | Runs everything | A laptop/desktop with ~16 GB RAM; Linux or Windows + WSL2 |
-| An agent CLI | Does the coding | Claude Code, or any agentic coding CLI |
-| An orchestrator | Hands out tickets, runs tasks | A self‑hosted agent orchestrator |
-| A model proxy *(optional)* | API‑lane models | LiteLLM in front of OpenRouter / other providers |
-| A Git host | The agents' only external tool | GitHub (forks + branch protection) |
-| A notifier | Tells you when a human is needed | Telegram / Slack / email |
+- A **laptop or desktop** (about 16 GB of memory is comfortable).
+- An **AI coding tool** (anything that can write code and run commands for you).
+- A **helper that hands out tasks** to your AI teammates (an "orchestrator").
+- A **GitHub account** (the AI's only way to propose changes).
+- A **chat app** (Telegram/Slack/email) so it can ping you when it needs a human.
 
 ---
 
-## 1. Decide the shape on paper first
-
-- **Lanes.** Which agents run on a flat subscription (cost‑gated) vs a pay‑per‑token API (budget‑capped)?
-- **Roster.** Start tiny: **one Engineer**. Add QA, Tech Lead, Security Officer only when each has a job.
-- **One config file.** Put names, roles, lanes, models, caps, thresholds, and ports in a single
-  `company.yaml` ([template here](../examples/company.yaml)). Treat it as the source of truth.
-
-## 2. Lock down the host before anything runs
-
-- Give the agents their **own OS user**, separate from yours.
-- Turn off anything that lets the VM reach your host's files or run host programs.
-- Cap the VM's memory so the agents can't starve the rest of the machine.
-- Create a **secrets vault** readable only by the ops user (mode `600`). Secrets live **only** there
-  (and in your password manager) — never in a repo, never printed.
-
-## 3. Build the usage gate (the money guardrail)
-
-Put a **wrapper** in front of the agent binary so every run is gated. It must **fail closed**.
-See [`examples/usage-gate.sh`](../examples/usage-gate.sh) for a teaching version. It should refuse to
-run when **any** of these is true:
-
-1. a `HALT` file exists (your big red button),
-2. an API key has leaked into the environment (subscription lane must have no paid fallback),
-3. usage data is missing or stale,
-4. the usage window is at/above your threshold,
-5. paid credits moved recently.
-
-Prove it works by trying to break it (set a fake key, create `HALT`, feed stale data) **before** you
-wire in a real token.
-
-## 4. Sandbox each agent
-
-- **No web by default**; allow it only for roles that need research, and only to vetted domains.
-- **Mask credentials**: inject tokens only on connections to the hosts that need them.
-- **Deny reads** of your host credentials, the orchestrator's secret store, and other users' homes.
-- Treat all external text (web, issues, PRs) as **data, not instructions**.
-
-## 5. Wire up GitHub safely
-
-- Create a **bot account**. It gets **no write access** to your real repos.
-- The bot **forks** the repo and pushes branches to its fork, then opens pull requests upstream.
-- Turn on **branch protection** + required CI + code‑owner review on protected paths.
-- Keep the human/merge token **minimal** (only the repos and scopes it truly needs).
-
-## 6. Automate merges with a policy (not clicks)
-
-A timer job approves + squash‑merges a bot PR **only** when:
-
-- CI is green and at least one check ran,
-- the diff is under a line limit,
-- no protected paths changed (CI config, code owners, license, etc.),
-- (optional) the linked ticket passed a review stage.
-
-Everything else → leave it for a human and send a notification. If a PR is **behind** main, update it
-using the **bot's** credentials (it owns the fork), so your human token can stay minimal.
-
-## 7. Add the ops services
-
-- **Governor**: checks memory/usage on a timer; can pause a lane or HALT everything.
-- **Backups**: nightly, plus a snapshot before any risky change. Test a restore.
-- **Monitor**: a tiny dashboard + a HALT button.
-- **Notifier**: failures, "needs a human" PRs, and merges.
-
-## 8. Run a 48‑hour soak before you trust it
-
-Queue a few **small** real tickets, let the agents work, and watch: tokens per run, memory peaks,
-how the usage window moves, and whether the merge policy behaves. Only then grow the roster.
-
----
-
-## A sane order of operations
+## The 5 simple steps
 
 ```mermaid
 flowchart LR
-    H[Lock down host] --> G[Usage gate]
-    G --> S[Sandbox]
-    S --> GH[GitHub fork flow]
-    GH --> M[Merge policy]
-    M --> O[Ops services]
-    O --> SOAK[48h soak]
-    SOAK --> GROW[Grow the roster]
+    A["1 · Lock the doors"] --> B["2 · Add a budget stop"]
+    B --> C["3 · Put each AI in a box"]
+    C --> D["4 · Connect GitHub safely"]
+    D --> E["5 · Let the easy stuff auto-ship"]
+
+    classDef s fill:#e8f0fe,stroke:#1a73e8,color:#0b2a66;
+    class A,B,C,D,E s;
 ```
 
-**Golden rules**
+1. **Lock the doors.** Give the AI team its own user account on the machine, separate from yours.
+   Keep your passwords and keys in a safe place they can't reach.
+2. **Add a budget stop.** Put a small check in front of the AI so it refuses to run when the budget
+   is used up or anything looks wrong. (A ready example is
+   [`examples/usage-gate.sh`](../examples/usage-gate.sh).) Test that it really stops *before* you add
+   any real key.
+3. **Put each AI in a box.** No internet unless you allow it. Hide your secrets from it. Treat
+   anything it reads from the web as information, never as orders.
+4. **Connect GitHub safely.** Make a separate "bot" account with **no access** to your real code.
+   It works on a copy (a "fork") and proposes changes; you keep the real keys.
+5. **Let the easy stuff auto‑ship.** Small changes that pass the tests can merge on their own.
+   Anything bigger or risky waits for you, with a chat ping.
 
-- Edit the **config**, deploy it — never hand‑edit the running VM.
-- Gate and sandbox **before** credentials.
-- Start with **one** agent and **one** ticket.
-- Keep a **HALT** button you can hit from your phone.
+---
 
-Quick start scaffolding: [`scripts/scaffold.sh`](../scripts/scaffold.sh).
+## Then: start tiny
+
+- Fill in the blanks in [`company.yaml`](../examples/company.yaml).
+- Add **one** AI teammate and **one** small task.
+- Watch it work for a day before adding more roles.
+
+Quick start: run `./scripts/scaffold.sh my-ai-company` to create a ready‑made folder you can edit.
+
+---
+
+## Things to remember
+
+- ✅ Edit the **settings file**, not the running machine.
+- ✅ Budget stop and sandbox **before** any real key.
+- ✅ Start with **one** teammate and **one** task.
+- ✅ Keep a **STOP** button you can hit from your phone.
+
+That's really all there is to it. Grow the "company" only when each new role has a clear job.

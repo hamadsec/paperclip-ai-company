@@ -1,265 +1,172 @@
 # Paperclip AI Company 🏢🤖
 
-> A role‑based **AI software company** that runs on **one ordinary laptop** — a self‑hosted
-> orchestrator driving a roster of AI coding agents with real job titles, strict cost
-> guardrails, and a hard safety sandbox. Agents pick up tickets, write code, open pull
-> requests, and ship — while a set of "ops" services keep spend at zero‑overshoot and
-> protect the machine.
-
-This repository is a **write‑up and a build‑your‑own kit**. It explains the architecture and
-the ideas behind it, and ships a small template + script so you can stand up something similar
-for your own setup. It contains **no secrets and no personal data** — see
-[What's intentionally not here](#whats-intentionally-not-here).
+> **A little AI "software team" that runs on your own laptop.**
+> It picks up tasks, writes the code, and hands you finished changes to approve — safely,
+> and without surprise bills.
 
 ---
 
-## The big idea
+## What is this? (the 30‑second version)
 
-Instead of chatting with one AI assistant, you run **many** of them as a tiny company:
-
-- Each agent has a **role** (Engineer, QA, Tech Lead, Security Officer, Release, …) and a
-  **reporting line**, just like employees.
-- An **orchestrator** hands them tickets from a board, runs each one as an isolated, short task,
-  and collects the result (a pull request).
-- **Guardrails** make it safe and cheap to leave running unattended: a hard *usage gate*, a
-  resource *governor*, a *sandbox* per agent, and a *merge policy* that only auto‑merges
-  green, low‑risk changes.
-
-The whole thing fits on a **single ~16 GB Windows laptop** (via WSL2) that also runs other
-self‑hosted apps — so resource discipline is a first‑class design goal, not an afterthought.
-
----
-
-## Architecture at a glance
-
-```mermaid
-flowchart TB
-    subgraph HOST["🖥️ One laptop — Windows + WSL2 (Ubuntu)"]
-        direction TB
-        subgraph ORCH["🧠 Orchestrator (self-hosted)"]
-            BOARD["Ticket board\n(issues → tasks)"]
-            RUNNER["Task runner\n(one small task per run)"]
-        end
-
-        subgraph AGENTS["👥 Role-based agents (each sandboxed)"]
-            ENG["Engineer"]
-            QA["QA"]
-            LEAD["Tech Lead"]
-            SEC["Security Officer"]
-        end
-
-        subgraph OPS["🛡️ Ops services"]
-            GATE["Usage gate\n(zero overspend)"]
-            GOV["Governor\n(protect the machine)"]
-            MON["Monitor dashboard"]
-            BAK["Nightly backups"]
-        end
-
-        PROXY["LiteLLM proxy\n(API-lane models)"]
-    end
-
-    SUB["💳 Subscription lane\n(Claude Code, no API key)"]
-    API["🌐 API lane\n(OpenRouter models)"]
-    GH["🐙 GitHub\n(forks → pull requests)"]
-    TG["📨 Telegram notifier"]
-
-    BOARD --> RUNNER --> AGENTS
-    ENG & QA & LEAD & SEC -->|work on a fork| GH
-    GATE -. gates every run .- RUNNER
-    GOV -. can pause/halt .- RUNNER
-    AGENTS -->|"max" lane| SUB
-    AGENTS -->|"openrouter" lane| PROXY --> API
-    OPS --> TG
-    MON --> HOST
-```
-
-**In words:** the orchestrator pulls a ticket, the task runner starts **one small task** as a
-role‑specific agent, the **usage gate** decides whether the run is even allowed, the agent works
-inside a **sandbox** whose only outside tool is **GitHub** (on a fork), and the result comes back
-as a **pull request**. Ops services watch spend, memory, and health, and ping a chat app when a
-human is needed.
-
----
-
-## How a single task flows
-
-```mermaid
-sequenceDiagram
-    participant B as Board
-    participant R as Task runner
-    participant G as Usage gate
-    participant A as Agent (sandboxed)
-    participant H as GitHub (fork)
-    participant M as Merge policy
-    participant N as Notifier
-
-    B->>R: Ticket "add endpoint X"
-    R->>G: May I run? (check usage %, HALT, API-key, staleness)
-    alt window healthy
-        G-->>R: allow
-        R->>A: Start one short task (turn + time + budget caps)
-        A->>H: Push branch to the agent's fork
-        A->>H: Open pull request
-        H-->>M: CI runs (lint, build, test)
-        alt CI green & low-risk
-            M->>H: Approve + squash-merge
-            M->>N: "Merged PR #N ✅"
-        else needs a human
-            M->>N: "PR #N needs review 👀"
-        end
-    else window near limit / unhealthy
-        G-->>R: deny (wait for reset)
-        G->>N: "Run skipped: usage guard"
-    end
-```
-
----
-
-## The two lanes (how cost stays under control)
-
-Agents run in one of two **lanes**, so you can mix a flat‑rate subscription with pay‑as‑you‑go
-models:
-
-| Lane | Powered by | Cost model | Guardrail |
-|------|------------|-----------|-----------|
-| **`max`** (subscription) | Claude Code on a subscription, **no API key** | Flat monthly | A **hard usage gate** refuses runs as the usage window fills |
-| **`openrouter`** (API) | OpenRouter models via a local **LiteLLM** proxy | Pay per token | A **weekly budget cap** in the proxy |
-
-> The subscription lane deliberately has **no API‑key fallback path**. If the subscription window
-> is exhausted, agents **wait** — they never silently spill over into paid usage.
-
----
-
-## The usage gate — a zero‑overspend guarantee
-
-The most important guardrail. A thin **wrapper** sits in front of the agent binary. Before any
-subscription‑lane run, it asks: *is it safe and allowed to run right now?* If anything is off,
-it **fails closed** (refuses).
-
-```mermaid
-flowchart TD
-    START([Agent run requested]) --> HALT{HALT file present?}
-    HALT -- yes --> DENY[❌ Refuse]
-    HALT -- no --> KEY{API key leaked\ninto env?}
-    KEY -- yes --> DENY
-    KEY -- no --> STALE{Usage data\nstale/missing?}
-    STALE -- yes --> DENY
-    STALE -- no --> PCT{Usage window\n≥ threshold?}
-    PCT -- yes --> DENY
-    PCT -- no --> CREDIT{Paid credits\nmoved recently?}
-    CREDIT -- yes --> DENY
-    CREDIT -- no --> ALLOW[✅ Run the task]
-```
-
-Because the gate is **pre‑emptive** (checked *before* the run) and **fails closed**, the worst
-case is "the agent waits," never "a surprise bill."
-
----
-
-## Safety & sandboxing
-
-Each agent runs inside a locked‑down sandbox:
-
-- **No web by default.** Only roles explicitly marked for research get web access, and only to a
-  vetted allow‑list of domains.
-- **Credentials are masked.** Tokens are injected only on connections to the hosts that need them
-  (e.g. the Git host); a "print my environment" trick sees placeholders, not secrets.
-- **Filesystem denies.** Agents can't read the host's credentials, the orchestrator's secret
-  store, or other users' files.
-- **Everything is data, not instructions.** Web pages, PR text, issue text, and briefs are treated
-  as input to reason about — never as commands to obey.
-- **Dangerous changes need a human.** Edits to CI, auth, dependencies, or scripts are routed to a
-  Security Officer review and/or a human.
-
----
-
-## GitHub fork flow + merge policy
-
-Agents never get write access to the real repositories. Instead:
+Instead of chatting with **one** AI assistant, you get a small **team** of AI "employees" — an
+engineer, a tester, a reviewer — each with a job. You drop tasks on a list; they do the work and
+hand you pull requests (proposed changes) to approve. It all runs on **one normal laptop**, stays
+within a **fixed budget**, and **can't touch anything it shouldn't**.
 
 ```mermaid
 flowchart LR
-    A["Agent"] -->|push| F["Bot's fork"]
-    F -->|pull request| U["Upstream repo\n(branch-protected)"]
-    U --> CI{"CI green?\nlow-risk?\nno protected paths?"}
-    CI -- yes --> MERGE["🤖 Auto-merge (policy)"]
-    CI -- no --> HUMAN["👤 Human review\n(+ chat ping)"]
+    YOU["🧑 You"] -->|add a task| BOARD["📋 Task list"]
+    BOARD --> TEAM["🤖 AI team<br/>engineer · tester · reviewer"]
+    TEAM -->|proposes a change| PR["🔀 Pull request"]
+    PR -->|auto-merges if safe,<br/>else waits for you| DONE["✅ Shipped"]
+    TEAM -. runs on .-> LAPTOP["💻 Your laptop"]
+
+    classDef a fill:#e8f0fe,stroke:#1a73e8,color:#0b2a66;
+    classDef b fill:#e6f4ea,stroke:#1e8e3e,color:#0b3d1e;
+    classDef c fill:#fff4e5,stroke:#e8a33d,color:#5a3a0b;
+    class YOU,BOARD a;
+    class TEAM,PR,DONE b;
+    class LAPTOP c;
 ```
 
-A small **merge policy** (running on a timer) approves and squash‑merges a bot's pull request
-**only** when: CI is green, the diff is small, and nothing under protected paths (CI config,
-code owners, license, etc.) changed. Anything else is left for a human with a notification.
-When a PR falls behind the main branch, the policy updates it using the **bot's own credentials**
-(the bot owns the fork) — keeping the human token minimal.
+---
+
+## How it works (4 steps)
+
+1. 📝 **You add a task** to a list ("add a login page").
+2. 🤖 **An AI teammate picks it up** and does one small job.
+3. 🔀 **It opens a pull request** — a proposed change you can see.
+4. ✅ **If it's small and the tests pass, it merges automatically.** Otherwise it waits for you.
+
+That's it. You review and approve; the team does the typing.
 
 ---
 
-## Resource care (it's a small machine)
+## Why it's different
 
-Because the company shares a laptop with other apps, several limits exist **by design**:
+- 💻 **Runs on one laptop.** No cloud, no servers, no monthly hosting bill.
+- 💸 **Never overspends.** It stops *before* it would cost you money — you can leave it running.
+- 👥 **A real team, not a chaotic swarm.** Each AI has a clear role and knows its lane.
+- 🔒 **Safe by default.** Sandboxed, can't leak your secrets, can't break your repo.
+- 🎛️ **You stay in control.** A big "stop" button, and anything risky always waits for a human.
 
-- A memory cap on the VM, and an **agent‑slot gate** (how many agents may run at once).
-- Per‑run **turn, time, and budget caps** — "one small task per run" keeps context (and cost) low.
-- A **governor** that watches memory/usage every couple of minutes and can pause a lane or
-  **HALT everything** if the machine is under pressure.
-- **Nightly backups** and phase **snapshots** so you can roll back.
-
----
-
-## The roster (example)
-
-Give your agents names and titles if you like — it makes the board read like a real team:
-
-| Role | Example name | Lane |
-|------|--------------|------|
-| Engineer | Onni | subscription |
-| QA | Minttu | subscription |
-| Tech Lead | Ilmari | subscription |
-| Security Officer | Saga | subscription |
-| Release | Toivo | subscription |
-| Engineer (API) | Veikko | api |
-
-> Names are just labels on the board — the *role* drives the agent's instructions, model,
-> caps, and permissions.
+👉 Want the fuller story? Read [**Why this one is different**](docs/WHY-DIFFERENT.md) (a 2‑minute read).
 
 ---
 
-## Config as the single source of truth
+## Try it / build your own
 
-One file (`company.yaml`) describes the company: names, roster, lanes, models, limits, thresholds,
-ports, and projects. A **deploy step** renders it into the VM; a **reconcile step** aligns the
-orchestrator (agents, policies, secret bindings) with it. You **edit the config, never the running
-VM by hand** — the same discipline as GitOps. See [`examples/company.yaml`](examples/company.yaml).
+You don't need to be an expert.
 
----
+1. Read the short [**build‑your‑own guide**](docs/BUILD-YOUR-OWN.md).
+2. Run the starter script to create your own folder:
+   ```bash
+   ./scripts/scaffold.sh my-ai-company
+   ```
+3. Open `company.yaml`, fill in the blanks, and start with **one** teammate and **one** task.
 
-## Build your own
-
-- 📖 [**docs/BUILD-YOUR-OWN.md**](docs/BUILD-YOUR-OWN.md) — a step‑by‑step guide.
-- 📝 [**docs/ARTICLE.md**](docs/ARTICLE.md) — the story and the lessons.
-- 🧩 [**examples/company.yaml**](examples/company.yaml) — a sanitized config template.
-- 🚦 [**examples/usage-gate.sh**](examples/usage-gate.sh) — a teaching version of the usage gate.
-- 🛠️ [**scripts/scaffold.sh**](scripts/scaffold.sh) — scaffolds a starter folder for your setup.
+Helpful files:
+- 🧩 [`examples/company.yaml`](examples/company.yaml) — the one settings file, with blanks to fill in.
+- 🚦 [`examples/usage-gate.sh`](examples/usage-gate.sh) — the "don't overspend" safety check, explained.
 
 ---
 
-## What's intentionally *not* here
+## Is it safe?
 
-This is a public explainer. It deliberately excludes everything sensitive from the real setup:
+Short answer: **yes, that's the whole point.**
 
-- ❌ No secrets, tokens, API keys, or `.env` files.
-- ❌ No real account names, emails, machine paths, host names, company IDs, or chat IDs.
-- ❌ No real project/product code or plans.
-- ✅ Only generic architecture, sanitized templates, and teaching examples.
+- It **can't spend money you didn't agree to** — a built‑in check stops it first.
+- Each AI teammate works in a **locked box** — no web unless allowed, and it can't read your passwords.
+- Agents **never get the keys** to your real code — they propose changes; you (or safe auto‑rules) approve.
+- There's a **STOP button** that halts everything instantly.
 
-The templates use placeholders like `YOUR_ORG`, `your-bot`, and `<REDACTED>`. Fill them in locally;
-keep your real secrets in a proper secret store, **never in a repo**.
+---
+
+<details>
+<summary>🔧 <b>For the curious: how it looks under the hood</b> (click to expand)</summary>
+
+You can skip this — it's here for people who want the technical picture.
+
+**The pieces on the laptop**
+
+```mermaid
+flowchart TB
+    subgraph LAPTOP["💻 One laptop · WSL2"]
+        ORCH["🧠 Orchestrator<br/>hands out tasks"]
+        TEAM["👥 AI agents<br/>each in a sandbox"]
+        OPS["⚙️ Ops: budget guard ·<br/>monitor · backups · alerts"]
+    end
+    GH["🐙 GitHub<br/>forks → pull requests"]
+    CHAT["📨 Chat alerts"]
+
+    ORCH --> TEAM --> GH
+    OPS -. watches & can stop .- TEAM
+    OPS --> CHAT
+
+    classDef a fill:#e8f0fe,stroke:#1a73e8,color:#0b2a66;
+    classDef b fill:#e6f4ea,stroke:#1e8e3e,color:#0b3d1e;
+    classDef c fill:#fff4e5,stroke:#e8a33d,color:#5a3a0b;
+    class ORCH a;
+    class TEAM,GH b;
+    class OPS,CHAT c;
+    style LAPTOP fill:#f8f9fb,stroke:#5f6368,color:#202124;
+```
+
+**The "don't overspend" check** (it refuses to run if anything looks off)
+
+```mermaid
+flowchart TD
+    START([▶️ About to run]) --> HALT{STOP button on?}
+    HALT -- yes --> DENY[⏸️ Wait]
+    HALT -- no --> BUDGET{near the budget limit?}
+    BUDGET -- yes --> DENY
+    BUDGET -- no --> SAFE{everything healthy?}
+    SAFE -- no --> DENY
+    SAFE -- yes --> GO[✅ Go]
+
+    classDef deny fill:#fde8e8,stroke:#c0392b,color:#7a1f1f;
+    classDef ok fill:#e6f4ea,stroke:#1e8e3e,color:#0b3d1e;
+    classDef chk fill:#fff4e5,stroke:#e8a33d,color:#5a3a0b;
+    class DENY deny;
+    class GO ok;
+    class HALT,BUDGET,SAFE chk;
+```
+
+**The team**
+
+```mermaid
+flowchart TD
+    CEO["👑 You"] --> LEAD["🧭 Tech Lead"]
+    CEO --> SEC["🛡️ Security"]
+    LEAD --> ENG["👷 Engineer"]
+    LEAD --> QA["🔎 Tester"]
+    LEAD --> REL["🚀 Release"]
+
+    classDef lead fill:#e8f0fe,stroke:#1a73e8,color:#0b2a66;
+    classDef ic fill:#e6f4ea,stroke:#1e8e3e,color:#0b3d1e;
+    class CEO,LEAD ic;
+    class ENG,QA,REL ic;
+    class SEC lead;
+```
+
+Want the full technical write‑up? It's in [`docs/ARTICLE.md`](docs/ARTICLE.md) and
+[`docs/BUILD-YOUR-OWN.md`](docs/BUILD-YOUR-OWN.md).
+
+</details>
+
+---
+
+## What's *not* in this repo (your privacy)
+
+This is a public explainer. It has **no secrets and no personal data** — no tokens, no emails, no
+account names, no file paths, no real project code. Just the idea, a settings template with blanks,
+and a couple of simple scripts. Keep your real secrets in a safe place, **never in a repo**.
 
 ---
 
 ## License
 
-[MIT](LICENSE) — do whatever you like, no warranty.
+[MIT](LICENSE) — free to use, copy, and change. No warranty.
 
-> Built as a weekend experiment: *can a role‑based AI company run safely and cheaply on one laptop?*
-> This repo is the sanitized answer.
+> Built as a weekend experiment: *can a small AI "company" run safely and cheaply on one laptop?*
+> This repo is the friendly, sanitized answer.
