@@ -1,0 +1,109 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# company.yaml — the single source of truth for your AI software company.
+#
+# This is a SANITIZED TEMPLATE. It holds configuration only — NEVER secrets.
+# Keep tokens/keys in a vault (an ops-only .env at mode 600) or a password manager.
+# Replace every <PLACEHOLDER>. Then render it into your VM with your deploy step.
+# ─────────────────────────────────────────────────────────────────────────────
+
+company:
+  name: "Example Labs"              # a codename for your company (not your real identity)
+  slug: "example"                   # short id used in paths, worktrees, branches
+  timezone: "Europe/Helsinki"
+
+# Where things live (generic local ports; adjust to taste).
+services:
+  orchestrator_url: "http://localhost:3100"
+  model_proxy_url:  "http://localhost:4000"   # LiteLLM UI/API (API lane only)
+  monitor_url:      "http://localhost:3200"
+
+# Two "lanes" let you mix a flat subscription with pay-as-you-go models.
+lanes:
+  max:                              # flat-rate subscription lane
+    provider: "subscription"        # agent CLI uses the subscription, NO api key
+    api_key_allowed: false          # must stay false — no paid fallback
+    usage_gate:
+      session_threshold_pct: 85     # refuse runs when the window is this full
+      weekly_threshold_pct: 90
+      stale_after_minutes: 15       # stale usage data => fail closed
+  openrouter:                       # pay-per-token API lane (via LiteLLM)
+    provider: "openrouter"
+    weekly_budget_usd: 15           # hard cap enforced in the proxy
+
+# Per-run limits. "One small task per run" keeps context and cost low.
+run_policy:
+  max_turns: 25
+  timeout_seconds: 1200
+  max_budget_usd: 2
+  max_concurrent_agents: 1          # agent-slot gate (protects a small machine)
+  fresh_session_per_run: true
+
+# The roster. Role drives instructions, model, caps and permissions.
+# `research: true` is the ONLY way an agent gets (vetted) web access.
+agents:
+  - name: "Onni"
+    role: "engineer"
+    lane: "max"
+    model: "<SUBSCRIPTION_MODEL_ID>"
+    research: false
+    reports_to: "tech_lead"
+
+  - name: "Minttu"
+    role: "qa"
+    lane: "max"
+    model: "<SUBSCRIPTION_MODEL_ID>"
+    research: false
+    reports_to: "tech_lead"
+
+  - name: "Ilmari"
+    role: "tech_lead"
+    lane: "max"
+    model: "<SUBSCRIPTION_MODEL_ID>"
+    research: false
+    reports_to: "ceo"
+
+  - name: "Saga"
+    role: "security_officer"
+    lane: "max"
+    model: "<SUBSCRIPTION_MODEL_ID>"
+    research: true                  # vetted domains only
+    reports_to: "ceo"
+
+  - name: "Veikko"
+    role: "engineer"
+    lane: "openrouter"
+    model: "<OPENROUTER_MODEL_ID>"
+    research: false
+    reports_to: "tech_lead"
+
+# GitHub: agents work on forks; the bot has NO write access upstream.
+github:
+  org: "<YOUR_ORG_OR_USER>"
+  bot_login: "<YOUR_BOT_ACCOUNT>"
+  repos:
+    - "<YOUR_ORG_OR_USER>/demo-app"
+  # Secret *reference names* only — the real values live in the vault, not here.
+  secret_refs:
+    git_token: "github-bot"         # ref name resolved from your secret store
+
+# Merge policy: auto-merge only green, small, low-risk PRs.
+merge_policy:
+  auto_merge: true
+  max_changed_lines: 3000
+  protected_paths:                  # changes here always need a human
+    - ".github/"
+    - "CODEOWNERS"
+    - "LICENSE"
+  require_review_stage: false       # turn on once you have a Tech Lead/Security review
+
+# Resource care + ops.
+ops:
+  governor:
+    enforce: false                  # start in notify-only mode; flip on after a soak
+    check_interval_seconds: 120
+  backups:
+    nightly_time: "03:30"
+    keep_days: 14
+  notifier:
+    channel: "telegram"             # or slack / email
+    # token + chat id live in the vault, never here

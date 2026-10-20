@@ -1,0 +1,11 @@
+# This repo is docs + templates only. Never commit real secrets or state.
+.env
+*.env
+!*.env.example
+ops/state/
+ops/log/
+ops/backups/
+*.key
+*.pem
+*.tar
+.DS_Store
