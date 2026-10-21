@@ -46,7 +46,7 @@ That's it. You review and approve; the team does the typing.
 
 - 💻 **Runs on one laptop.** No cloud, no servers, no monthly hosting bill.
 - 💸 **Never overspends.** It stops *before* it would cost you money — you can leave it running.
-- 👥 **A real team, not a chaotic swarm.** Each AI has a clear role and knows its lane.
+- 👥 **A real team, not a chaotic swarm.** Each AI has a clear role and knows its lane — [meet the team](docs/TEAM.md).
 - 🔒 **Safe by default.** Sandboxed, can't leak your secrets, can't break your repo.
 - 🎛️ **You stay in control.** A big "stop" button, and anything risky always waits for a human.
 
