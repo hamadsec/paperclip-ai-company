@@ -1,7 +1,8 @@
 # Why this one is different
 
-A 2‑minute read. Lots of projects let AI write code. Here's what makes **this** setup stand out —
-in plain words.
+A 2‑minute read. Lots of projects let AI write code. Here's what makes **this** setup stand out — in
+plain words. The short version: it's a *team* with guardrails, and it's been **proven to ship on its
+own**, on one laptop, without spending a cent of surprise money.
 
 ---
 
@@ -12,33 +13,41 @@ No cloud account, no servers to rent, no monthly hosting bill. One ordinary lapt
 
 ## 2. It can't overspend 💸
 
-Most AI setups happily keep spending until *you* notice. This one has a built‑in check that stops
-**before** it would cost you money. If the budget's used up for now, the team simply **waits**.
-You can leave it running overnight without watching a meter.
+Most AI setups happily keep spending until *you* notice. This one has a built‑in gate that stops
+**before** it would cost money. Over the whole build, paid spend stayed at exactly **zero**. If the
+usage window is full, the team simply **waits** — leave it running overnight without watching a meter.
 
 ## 3. It's a team, not a swarm 👥
 
-Instead of a pile of bots all talking over each other, you get clear roles — an engineer, a tester,
-a reviewer, a security checker — each with one job and someone to report to. It behaves like a small
-company, which makes it predictable and easy to follow.
+Instead of a pile of bots talking over each other, you get **ten clear roles** — CEO, product owner,
+tech lead, security, engineer, release, QA, designer, and ops — each with one job and a manager. It
+behaves like a small company, which makes it predictable and easy to follow.
 
-## 4. It's safe by default 🔒
+## 4. Every change is reviewed 🧭
 
-Every AI teammate works inside a locked box: no internet unless you allow it, and it **can't read
-your passwords** or break your real project. The agents never hold the keys — they only *suggest*
-changes, which you (or safe automatic rules) approve.
+This is the big one. Nothing merges on a rubber stamp. When an engineer opens a pull request, the
+system **opens a review task** for the Tech Lead — or the **Security Officer** if the change touches
+dependencies, CI, scripts, or secrets. The reviewer reads the **actual diff** and posts a verdict;
+only `approved` lets it merge, and "changes requested" bounces it back to the engineer. It's a review
+*gate*, and it's been proven end‑to‑end on live pull requests.
 
-## 5. You're always in control 🎛️
+## 5. It's safe by default 🔒
 
-There's a big **STOP** button that halts everything at once. And anything risky — touching security,
-settings, or money — **always** waits for a human. The AI handles the boring, repetitive work; you
-make the calls that matter.
+Every AI teammate works inside a locked box: no internet unless you allow it, and it **can't read your
+secrets** or break your real project. Agents never hold the keys — they work on a **fork** and only
+*propose* changes.
 
-## 6. It ships small, safe changes — automatically ✅
+## 6. You're always in control 🎛️
 
-When a change is small and all the tests pass, it merges on its own. When it's bigger or risky, it
-pauses and pings you. So the easy 80% flows without you lifting a finger, and the important 20%
-still gets your eyes.
+A big **STOP** button halts everything at once. Anything risky — security, settings, spend — waits for
+a human. And a **Telegram front door** lets you drive the whole thing from your phone: text "status"
+for an accurate read, or send a brief and watch it become a task.
+
+## 7. It's proven, not theoretical ✅
+
+The headline test: hand it a one‑line brief and don't touch the keyboard. The product owner planned a
+feature, the engineer built it with a test, the reviewer approved the diff, and it **merged and served**
+— in minutes, on its own. The easy 80% flows without you; the important 20% still gets your eyes.
 
 ---
 
@@ -47,12 +56,14 @@ still gets your eyes.
 | Typical "AI writes code" setup | This one |
 |---|---|
 | Lives in the cloud, costs add up | Runs on one laptop, fixed budget |
-| Can keep spending unnoticed | **Stops before it costs you** |
-| A swarm of bots | A small **team with roles** |
-| Broad access to your stuff | **Sandboxed**, can't leak secrets |
-| You babysit every step | **Auto‑handles the easy stuff**, asks you about the rest |
+| Can keep spending unnoticed | **Stops before it costs you** (spend stayed at zero) |
+| A swarm of bots | A small **team of 10 roles** |
+| Merges on a rubber stamp | **A reviewer reads the diff and gates the merge** |
+| Broad access to your stuff | **Sandboxed**, can't leak secrets, works on a fork |
+| You babysit every step | **Auto‑ships the easy stuff**, asks you about the rest |
+| A cool demo | **Proven end‑to‑end** — planned, built, reviewed, shipped |
 
 ---
 
-Curious how to build your own? → [**Build your own**](BUILD-YOUR-OWN.md) (short and beginner‑friendly).
-Prefer the backstory? → [**The article**](ARTICLE.md).
+Curious how to build your own? → [**Build your own**](BUILD-YOUR-OWN.md) (a complete, ordered plan).
+Prefer the backstory? → [**The article**](ARTICLE.md). Meet the roles → [**The team**](TEAM.md).

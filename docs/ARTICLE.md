@@ -1,57 +1,71 @@
-# I built a tiny AI "company" on one laptop
+# I built a tiny AI "company" on one laptop — and it shipped
 
-A short, plain story of a weekend experiment: what if an AI didn't act like one assistant, but
-like a small **team** that works for you?
+A short, plain story: not "what if an AI acted like a team?" but *what happened when I actually built
+one* — a small AI software company that runs on a single laptop, reviews its own work, and ships.
 
 ---
 
 ## The idea
 
-Everyone has chatted with a single AI helper. I wondered what happens if you run **several** of
-them like employees — an engineer who writes code, a tester who checks it, a reviewer who signs
-off — all picking up tasks from a shared list.
+Everyone has chatted with a single AI helper. I wanted to run **several** of them like employees — a
+product owner who plans, engineers who write code, a tester, a reviewer who signs off, a security
+checker — all picking work off a shared board.
 
-I gave myself three rules:
+Three rules I gave myself:
 
 1. **It has to run on one laptop.** No cloud, no rented servers.
 2. **It must never cost me a surprise.** It should stop *before* it spends money, not after.
-3. **It has to be safe to leave alone.** No leaking my passwords, no breaking my code.
+3. **It has to be safe to leave alone.** No leaking my keys, no breaking my code.
 
 ## How it turned out
 
-It works like a little office. Tasks sit on a list. An AI teammate picks one up, does a small piece
-of work, and hands back a proposed change for me to approve. If the change is small and passes the
-tests, it goes in on its own. If it's bigger or risky, it waits for me and sends a message.
+It runs like a little office. A brief comes in; the **Product Owner** turns it into small tasks; an
+**Engineer** writes the code and opens a pull request; the **Tech Lead reviews the diff and approves
+it**; and the change merges and ships. Small, green, approved changes flow on their own; anything
+bigger or risky waits for me, with a chat ping.
 
-Around that core sit a few quiet helpers: one that watches the budget and refuses to run if it's
-spent, one that keeps an eye on the laptop so the AI doesn't hog it, nightly backups, and a big
-**STOP** button I can hit from my phone. Those helpers are the difference between a fun demo and
-something I can actually leave running.
+It grew to **ten roles** — CEO, Tech Lead, Product Owner, Security, Engineer, Release, QA, Designer,
+plus a maintenance and a watchdog role — each with one job and a manager. Around that core sit the
+quiet helpers: a budget gate that refuses to run if the window's spent, a governor watching the
+machine, nightly backups, and a big **STOP** button I can hit from my phone.
 
-## The two things I'm proudest of
+## The moment it clicked
 
-**It can't overspend.** There's a simple check in front of the AI: before it runs, it asks "is this
-allowed and affordable right now?" If anything's off, it just waits. The worst case is "the work
-happens a bit later," never "a scary bill."
+The test I cared about: hand the company a one‑line brief and *don't touch the keyboard*. I asked for a
+simple "How It Works" page. The Product Owner planned it, the Engineer built it (with a test), the
+tests went green, the system **opened a review task for the Tech Lead**, the Tech Lead read the diff
+and approved it, and it **merged and served** — start to finish in a few minutes, fully on its own.
 
-**It approves its own easy work.** I used to click "approve" on every single change, which doesn't
-scale. Now small, safe changes merge automatically, and only the important ones land on my desk. I
-went from babysitting everything to handling just the 20% that matters.
+That's the difference between a clever demo and something that behaves like a team.
+
+## The things I'm proudest of
+
+**It can't overspend.** A simple check sits in front of every run: "is this allowed and affordable
+right now?" If anything's off, it just waits. Paid spend stayed at exactly **zero** the whole time —
+by design, not luck. The worst case is "the work happens a bit later," never "a scary bill."
+
+**Every change gets reviewed.** I didn't want a rubber stamp, so nothing merges until an AI reviewer
+(the Tech Lead, or Security for risky changes) reads the actual diff and signs off. The orchestrator
+didn't have this as a feature, so I wired it as a convention — and it held.
+
+**I can run it from my phone.** A chat front door lets me text "status" and get an accurate read of the
+whole company, or send a brief and watch it become a task.
 
 ## What it taught me
 
-- **Being strict is what makes it relaxing.** The budget stop, the sandbox, the STOP button — the
-  rules are exactly why I can walk away and not worry.
-- **Start tiny.** One teammate, one task. Add more only when each new "role" has a real job.
-- **Small machines teach discipline.** Sharing a laptop forces you to keep each task small and
-  cheap — which, it turns out, is just good practice anyway.
+- **Being strict is what makes it relaxing.** The budget gate, the sandbox, the review gate, the STOP
+  button — those rules are *exactly* why I can walk away.
+- **Start tiny, grow on merit.** One engineer, one task. Add a role only when it has a real job.
+- **The hard parts are the boring parts.** The interesting failures weren't the AI writing bad code —
+  they were a token that couldn't update a stale PR, git worktrees that weren't isolated, and a Windows
+  security feature blocking an unsigned update. Getting those right is the whole game.
 
-## Would I recommend it?
+## Would I recommend building one?
 
-As a way to learn: absolutely. You end up understanding AI agents, costs, and safety far better
-than any single‑chat workflow teaches you. Start with one engineer and one task — and grow your
-"company" only when it earns it.
+As a way to *understand* AI agents, cost control, and safety — absolutely. You learn more than any
+single‑chat workflow teaches. Start with one engineer and one task, keep the budget gate and sandbox in
+front of everything, and grow your "company" only when it earns it.
 
-Want to try? → [**Build your own**](BUILD-YOUR-OWN.md) · [**Why it's different**](WHY-DIFFERENT.md)
+Want to try? → [**Build your own**](BUILD-YOUR-OWN.md) · [**Why it's different**](WHY-DIFFERENT.md) · [**Meet the team**](TEAM.md)
 
-*— a weekend experiment, written up with the private bits removed.*
+*— written up with the private bits removed.*

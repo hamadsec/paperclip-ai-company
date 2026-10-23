@@ -97,9 +97,10 @@ Checklist (see the guide you scaffolded this from):
 2. Build + prove the usage gate (fail closed) BEFORE adding any token.
 3. Sandbox each agent (no web by default, mask credentials, deny host reads).
 4. GitHub fork flow (bot has no upstream write) + branch protection.
-5. Merge policy for green, small, low-risk PRs; humans for the rest.
-6. Ops: governor, nightly backups, monitor, notifier.
-7. 48h soak with a few small tickets, then grow the roster.
+5. Ops: governor, nightly backups, monitor, notifier.
+6. 48h soak with a few small tickets, then grow the roster one role at a time.
+7. Review gate: a reviewer (Tech Lead / Security) must approve the diff before merge;
+   then green, small, low-risk PRs can auto-merge. Humans for anything bigger/risky.
 
 Big red button: \`ops/halt.sh\`
 MD

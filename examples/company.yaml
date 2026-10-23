@@ -1,9 +1,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # company.yaml — the single source of truth for your AI software company.
 #
-# This is a SANITIZED TEMPLATE. It holds configuration only — NEVER secrets.
-# Keep tokens/keys in a vault (an ops-only .env at mode 600) or a password manager.
-# Replace every <PLACEHOLDER>. Then render it into your VM with your deploy step.
+# This is a SANITIZED TEMPLATE reflecting the finished setup. It holds configuration
+# only — NEVER secrets. Keep tokens/keys in a vault (an ops-only .env at mode 600) or
+# a password manager. Replace every <PLACEHOLDER>. Then render it into your VM with
+# your deploy/reconcile step (never hand-edit inside the running VM).
 # ─────────────────────────────────────────────────────────────────────────────
 
 company:
@@ -14,67 +15,53 @@ company:
 # Where things live (generic local ports; adjust to taste).
 services:
   orchestrator_url: "http://localhost:3100"
-  model_proxy_url:  "http://localhost:4000"   # LiteLLM UI/API (API lane only)
+  model_proxy_url:  "http://localhost:4000"   # model proxy UI/API (pay-per-token lane only)
   monitor_url:      "http://localhost:3200"
 
 # Two "lanes" let you mix a flat subscription with pay-as-you-go models.
 lanes:
-  max:                              # flat-rate subscription lane
+  max:                              # flat-rate subscription lane (what the whole team runs on)
     provider: "subscription"        # agent CLI uses the subscription, NO api key
-    api_key_allowed: false          # must stay false — no paid fallback
+    api_key_allowed: false          # MUST stay false — no paid fallback, ever
     usage_gate:
-      session_threshold_pct: 85     # refuse runs when the window is this full
+      session_threshold_pct: 85     # refuse runs when the usage window is this full
       weekly_threshold_pct: 90
       stale_after_minutes: 15       # stale usage data => fail closed
-  openrouter:                       # pay-per-token API lane (via LiteLLM)
-    provider: "openrouter"
-    weekly_budget_usd: 15           # hard cap enforced in the proxy
+  openrouter:                       # pay-per-token API lane (via a local proxy)
+    provider: "openrouter"          # NOTE: a Claude-Code harness can't run non-Anthropic models;
+    weekly_budget_usd: 15           # a cheap lane needs an OpenAI-protocol runtime (see BUILD-YOUR-OWN)
 
 # Per-run limits. "One small task per run" keeps context and cost low.
 run_policy:
   max_turns: 25
   timeout_seconds: 1200
   max_budget_usd: 2
-  max_concurrent_agents: 1          # agent-slot gate (protects a small machine)
+  max_concurrent_agents: 2          # agent-slot gate (protects a small machine)
   fresh_session_per_run: true
 
-# The roster. Role drives instructions, model, caps and permissions.
-# `research: true` is the ONLY way an agent gets (vetted) web access.
+# The roster (the 10 roles that actually ran, all on the subscription lane).
+# Role drives instructions, model, caps and permissions. `research: true` is the ONLY
+# way an agent gets (vetted) web access. Add agents one at a time.
 agents:
-  - name: "Onni"
-    role: "engineer"
-    lane: "max"
-    model: "<SUBSCRIPTION_MODEL_ID>"
-    research: false
-    reports_to: "tech_lead"
+  - { name: "Aino",   role: "ceo",              lane: "max", model: "<SUBSCRIPTION_MODEL>",       reports_to: "board",      research: false }
+  - { name: "Ilmari", role: "tech_lead",        lane: "max", model: "<SUBSCRIPTION_MODEL>",       reports_to: "ceo",        research: true  }
+  - { name: "Eero",   role: "product_owner",    lane: "max", model: "<SUBSCRIPTION_MODEL>",       reports_to: "ceo",        research: false }
+  - { name: "Saga",   role: "security_officer", lane: "max", model: "<SUBSCRIPTION_MODEL>",       reports_to: "ceo",        research: true  }
+  - { name: "Onni",   role: "engineer",         lane: "max", model: "<SUBSCRIPTION_MODEL>",       reports_to: "tech_lead",  research: false }
+  - { name: "Toivo",  role: "release",          lane: "max", model: "<SUBSCRIPTION_MODEL>",       reports_to: "tech_lead",  research: false }
+  - { name: "Minttu", role: "qa",               lane: "max", model: "<SUBSCRIPTION_MODEL>",       reports_to: "product_owner", research: false }
+  - { name: "Iiris",  role: "designer",         lane: "max", model: "<SUBSCRIPTION_MODEL>",       reports_to: "product_owner", research: false }
+  - { name: "Arvo",   role: "maintenance",      lane: "max", model: "<SUBSCRIPTION_MODEL_CHEAP>", reports_to: "ceo",        research: false }
+  - { name: "Nuutti", role: "watchdog",         lane: "max", model: "<SUBSCRIPTION_MODEL_CHEAP>", reports_to: "ceo",        research: false }
+  # Deferred to a pay-per-token lane (needs an OpenAI-protocol runtime): a 2nd engineer,
+  # procurement, finance, and background briefs/learning/reflection agents.
 
-  - name: "Minttu"
-    role: "qa"
-    lane: "max"
-    model: "<SUBSCRIPTION_MODEL_ID>"
-    research: false
-    reports_to: "tech_lead"
-
-  - name: "Ilmari"
-    role: "tech_lead"
-    lane: "max"
-    model: "<SUBSCRIPTION_MODEL_ID>"
-    research: false
-    reports_to: "ceo"
-
-  - name: "Saga"
-    role: "security_officer"
-    lane: "max"
-    model: "<SUBSCRIPTION_MODEL_ID>"
-    research: true                  # vetted domains only
-    reports_to: "ceo"
-
-  - name: "Veikko"
-    role: "engineer"
-    lane: "openrouter"
-    model: "<OPENROUTER_MODEL_ID>"
-    research: false
-    reports_to: "tech_lead"
+# Which roles review which kind of change (applied when tasks are created / at merge time).
+review_policy:
+  engineering:        { reviewers: ["Ilmari"],          max_rounds: 3 }
+  ui:                 { reviewers: ["Ilmari", "Iiris"], max_rounds: 3 }
+  security_sensitive: { reviewers: ["Ilmari", "Saga"],  max_rounds: 3 }  # deps, CI, scripts, auth, secrets, network
+  release:            { reviewers: ["Minttu"], approval: ["board"] }
 
 # GitHub: agents work on forks; the bot has NO write access upstream.
 github:
@@ -86,7 +73,7 @@ github:
   secret_refs:
     git_token: "github-bot"         # ref name resolved from your secret store
 
-# Merge policy: auto-merge only green, small, low-risk PRs.
+# Merge policy: auto-merge only green, small, low-risk PRs — AND only after a review passes.
 merge_policy:
   auto_merge: true
   max_changed_lines: 3000
@@ -94,16 +81,19 @@ merge_policy:
     - ".github/"
     - "CODEOWNERS"
     - "LICENSE"
-  require_review_stage: false       # turn on once you have a Tech Lead/Security review
+  require_review_stage: true        # the review gate is ON: a reviewer must approve the diff first
 
 # Resource care + ops.
 ops:
   governor:
-    enforce: false                  # start in notify-only mode; flip on after a soak
+    enforce: true                   # enforcing (flip on after a clean soak)
     check_interval_seconds: 120
   backups:
     nightly_time: "03:30"
-    keep_days: 14
+    keep_days: 30
   notifier:
     channel: "telegram"             # or slack / email
     # token + chat id live in the vault, never here
+  front_door:
+    enabled: true                   # chat agent connected to the orchestrator over MCP (read + file-a-task)
+    scope: "read_and_file_tasks"    # never approve/decide on the owner's behalf

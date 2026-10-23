@@ -1,31 +1,36 @@
 # The team 👥
 
-A quick tour of the "employees" and what each one is **for**. You don't need all of them — start
-with a single Engineer and add roles only when the work actually needs them.
+The company that actually ran had **10 AI roles** (plus you, the human "board," above the AI CEO). Here's
+the real org chart and what each role is **for**. You don't need all of them — start with a single
+Engineer and add roles only when the work needs them. (Names are just friendly labels.)
 
 ```mermaid
 flowchart TD
-    OWNER["🧑 You · CEO<br/>sets direction · approves big calls"]
-    PO["🗂️ Product Owner<br/>turns ideas into small tickets"]
-    LEAD["🧭 Tech Lead<br/>reviews · keeps quality"]
-    SEC["🛡️ Security Officer<br/>guards risky changes"]
-    ENG["👷 Engineer<br/>writes the code"]
-    QA["🔎 Tester (QA)<br/>writes &amp; runs tests"]
-    REL["🚀 Release<br/>merges &amp; ships"]
+    BOARD["🧑 You · the board<br/>goals · approvals · STOP"]
+    CEO["👑 CEO<br/>(Aino)"]
+    LEAD["🧭 Tech Lead<br/>(Ilmari)"]
+    PO["🗂️ Product Owner<br/>(Eero)"]
+    SEC["🛡️ Security Officer<br/>(Saga)"]
+    MAINT["🩺 Maintenance<br/>(Arvo)"]
+    WATCH["👀 Watchdog<br/>(Nuutti)"]
+    ENG["👷 Engineer<br/>(Onni)"]
+    REL["🚀 Release<br/>(Toivo)"]
+    QA["🔎 QA<br/>(Minttu)"]
+    DES["🎨 Designer<br/>(Iiris)"]
 
-    OWNER --> PO
-    OWNER --> SEC
-    PO --> LEAD
-    LEAD --> ENG
-    LEAD --> QA
-    LEAD --> REL
+    BOARD --> CEO
+    CEO --> LEAD & PO & SEC & MAINT & WATCH
+    LEAD --> ENG & REL
+    PO --> QA & DES
     SEC -. reviews risky work .-> ENG
 
+    classDef board fill:#f3e8fd,stroke:#8e44ad,color:#3b1d5e;
     classDef boss fill:#e8f0fe,stroke:#1a73e8,color:#0b2a66;
     classDef ic fill:#e6f4ea,stroke:#1e8e3e,color:#0b3d1e;
     classDef guard fill:#fde8e8,stroke:#c0392b,color:#7a1f1f;
-    class OWNER,PO,LEAD boss;
-    class ENG,QA,REL ic;
+    class BOARD board;
+    class CEO,LEAD,PO boss;
+    class ENG,REL,QA,DES,MAINT,WATCH ic;
     class SEC guard;
 ```
 
@@ -35,34 +40,40 @@ flowchart TD
 
 | Role | Why it exists (its purpose) | Reports to |
 |------|------------------------------|------------|
-| 🧑 **CEO / You** | Sets the goals, makes the calls that matter, and can hit **STOP** at any time. The only human required. | — |
-| 🗂️ **Product Owner** | Breaks big ideas into **small, clear tickets** the team can actually pick up. Keeps the backlog sane. | CEO |
-| 🧭 **Tech Lead** | **Reviews** changes, keeps the code consistent and high‑quality, and splits large work into bite‑size tasks. | Product Owner |
-| 🛡️ **Security Officer** | The gatekeeper for anything **risky** — new dependencies, CI changes, logins/secrets, or reaching outside domains. | CEO |
-| 👷 **Engineer** | Picks up a ticket, **writes the code**, and opens a pull request. The one doing the typing. | Tech Lead |
-| 🔎 **Tester (QA)** | Writes and runs **tests** so a change is safe to ship — catches breakage before you do. | Tech Lead |
-| 🚀 **Release** | **Merges** approved changes and ships them, keeping the main branch healthy. | Tech Lead |
+| 🧑 **You · the board** | Set the goals, approve the calls that matter, hit **STOP** anytime. The only human required. | — |
+| 👑 **CEO** (Aino) | Turns your goals into priorities for the team and resolves cross‑team trade‑offs. Acts on your intent, never against it. | You |
+| 🧭 **Tech Lead** (Ilmari) | **Reviews** engineering pull requests (the review gate), keeps quality consistent, splits big work into small tasks. | CEO |
+| 🗂️ **Product Owner** (Eero) | Breaks briefs into **small, clear tasks** with acceptance criteria; accepts or rejects finished work. | CEO |
+| 🛡️ **Security Officer** (Saga) | The gatekeeper for **risky** changes — new dependencies, CI, scripts, auth/secrets, outside domains. Reviews those PRs. | CEO |
+| 👷 **Engineer** (Onni) | Picks up a task, **writes the code**, opens a pull request. | Tech Lead |
+| 🚀 **Release** (Toivo) | Produces local demos and release notes; ships approved work. | Tech Lead |
+| 🔎 **QA** (Minttu) | Verifies a change against its acceptance criteria and **tests**. | Product Owner |
+| 🎨 **Designer** (Iiris) | UI/UX — wireframes, layout, simple pages — and reviews UI changes. | Product Owner |
+| 🩺 **Maintenance** (Arvo) | Small housekeeping: tidy docs, fix flaky tests, keep the repo healthy. | CEO |
+| 👀 **Watchdog** (Nuutti) | Watches for stalled tasks, failed runs, and drift; raises a flag (doesn't fix). | CEO |
+
+All of the above run on the flat‑rate **subscription lane** (budget‑guarded so it can't overspend).
 
 ---
 
 ## Grow into these later (optional)
 
-Add any of these once the basics are humming — not before:
-
-- 🎨 **Designer** — UI and visual work.
-- 🩺 **Watchdog / Ops** — keeps the services and the machine healthy, raises alerts.
-- 👷 **Second Engineer / Tester on the cheaper API lane** — for running extra work in parallel without touching the subscription budget.
-- 📝 **Briefs** — writes short summaries of what shipped.
+These were planned for a cheaper **pay‑per‑token lane** (a second engineer, procurement, finance, and
+background "briefs/learning/reflection" agents). They're **deferred** here for a technical reason worth
+knowing: the agent runtime only speaks one model protocol, so the cheap lane needs a *different* runtime
+(see the [build guide](BUILD-YOUR-OWN.md#gotchas-we-learned-save-yourself-the-pain)). The core company
+runs fine without them.
 
 ---
 
 ## A note on "lanes"
 
-Most roles run on a flat‑rate **subscription** (budget‑guarded so it can't overspend). Extra
-helpers — like a second engineer or tester — can run on a pay‑per‑token **API lane** so they can
-work in parallel for a few cents, with their own weekly cap.
+- **Subscription lane (max):** flat‑rate, budget‑guarded, used by every role above. The usage gate keeps
+  it from ever spilling into paid credits.
+- **Pay‑per‑token lane (API):** for extra, high‑volume or background helpers, with its own hard weekly
+  cap — routed through a local proxy so you can see and limit the spend.
 
-> **Rule of thumb:** every role should have a clear, single job. If you can't say in one line why a
-> role exists, you don't need it yet.
+> **Rule of thumb:** every role should have a clear, single job. If you can't say in one line why a role
+> exists, you don't need it yet.
 
 ← Back to the [README](../README.md) · see also [Why it's different](WHY-DIFFERENT.md).

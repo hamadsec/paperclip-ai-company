@@ -1,83 +1,109 @@
 # Paperclip AI Company 🏢🤖
 
-> **A little AI "software team" that runs on your own laptop.**
-> It picks up tasks, writes the code, and hands you finished changes to approve — safely,
-> and without surprise bills.
+> **A small AI "software team" that runs on one laptop — built, and proven end‑to‑end.**
+> It plans features, writes the code, reviews its own work, and ships — safely, and without
+> surprise bills.
+
+This isn't a "what if." It's running. A 10‑role AI company planned a feature, an engineer built it,
+a reviewer approved it, and it merged and served — on a single laptop, with **zero** surprise spend.
 
 ---
 
 ## What is this? (the 30‑second version)
 
-Instead of chatting with **one** AI assistant, you get a small **team** of AI "employees" — an
-engineer, a tester, a reviewer — each with a job. You drop tasks on a list; they do the work and
-hand you pull requests (proposed changes) to approve. It all runs on **one normal laptop**, stays
-within a **fixed budget**, and **can't touch anything it shouldn't**.
+Instead of chatting with **one** AI assistant, you get a small **team** of AI "employees" — a product
+owner, engineers, a tester, a reviewer, a security checker — each with a job. You drop a brief; they
+turn it into tasks, write the code, **review each other's pull requests**, and ship the safe ones. It
+all runs on **one normal laptop**, stays within a **fixed budget**, and **can't touch anything it
+shouldn't**.
 
 ```mermaid
 flowchart LR
-    YOU["🧑 You"] -->|add a task| BOARD["📋 Task list"]
-    BOARD --> TEAM["🤖 AI team<br/>engineer · tester · reviewer"]
-    TEAM -->|proposes a change| PR["🔀 Pull request"]
-    PR -->|auto-merges if safe,<br/>else waits for you| DONE["✅ Shipped"]
-    TEAM -. runs on .-> LAPTOP["💻 Your laptop"]
+    YOU["🧑 You"] -->|a brief, by chat| PO["🗂️ Product Owner<br/>plans tasks"]
+    PO --> ENG["👷 Engineer<br/>writes code → PR"]
+    ENG --> REV["🧭 Review gate<br/>Tech Lead / Security"]
+    REV -->|approved| MERGE["🔀 Merge + ship"]
+    REV -. changes requested .-> ENG
 
     classDef a fill:#e8f0fe,stroke:#1a73e8,color:#0b2a66;
     classDef b fill:#e6f4ea,stroke:#1e8e3e,color:#0b3d1e;
     classDef c fill:#fff4e5,stroke:#e8a33d,color:#5a3a0b;
-    class YOU,BOARD a;
-    class TEAM,PR,DONE b;
-    class LAPTOP c;
+    class YOU a;
+    class PO,ENG b;
+    class REV c;
+    class MERGE b;
 ```
+
+---
+
+## It actually works (the proof)
+
+In a first full end‑to‑end run, with **no human touching the keyboard**:
+
+1. The **Product Owner** took a one‑line brief ("add a *How It Works* page") and broke it into a task.
+2. The **Engineer** built it — a real page, with a test — and opened a pull request.
+3. The build's tests went green; the **merge‑bot opened a review task** for the **Tech Lead**.
+4. The Tech Lead **read the diff and approved it** (`REVIEW‑APPROVED`).
+5. The change **merged** and the page was **served** locally.
+
+Round trip: a few minutes, start to finish. You can also just **text the company from your phone** —
+ask for status, or send a brief and it files a task to the CEO.
 
 ---
 
 ## How it works (4 steps)
 
-1. 📝 **You add a task** to a list ("add a login page").
-2. 🤖 **An AI teammate picks it up** and does one small job.
-3. 🔀 **It opens a pull request** — a proposed change you can see.
-4. ✅ **If it's small and the tests pass, it merges automatically.** Otherwise it waits for you.
+1. 📝 **You send a brief** ("add a login page") — by chat or onto a task list.
+2. 🧩 **The Product Owner turns it into small tasks** and assigns an engineer.
+3. 🔀 **The engineer writes the code and opens a pull request**, which a **reviewer must approve**.
+4. ✅ **Approved + tests green → it merges.** Anything risky or big waits for you.
 
-That's it. You review and approve; the team does the typing.
+You set direction and approve the big calls; the team does the typing *and* the reviewing.
 
 ---
 
 ## Why it's different
 
 - 💻 **Runs on one laptop.** No cloud, no servers, no monthly hosting bill.
-- 💸 **Never overspends.** It stops *before* it would cost you money — you can leave it running.
-- 👥 **A real team, not a chaotic swarm.** Each AI has a clear role and knows its lane — [meet the team](docs/TEAM.md).
-- 🔒 **Safe by default.** Sandboxed, can't leak your secrets, can't break your repo.
-- 🎛️ **You stay in control.** A big "stop" button, and anything risky always waits for a human.
+- 💸 **Never overspends.** A hard check stops it *before* it would cost money — it kept paid spend at
+  **zero** the whole time. Leave it running.
+- 👥 **A real team, not a chaotic swarm.** 10 roles, each with one job and a manager — [meet the team](docs/TEAM.md).
+- 🧭 **Every change is reviewed.** An AI Tech Lead (or Security, for risky changes) reads the diff and
+  signs off before anything merges — a review *gate*, not a rubber stamp.
+- 🔒 **Safe by default.** Sandboxed agents, hidden secrets, a locked‑down machine; they propose, you (or
+  safe rules) approve.
+- 🎛️ **You stay in control.** A big "stop" button, and a Telegram front door to drive it from your phone.
 
-👉 Want the fuller story? Read [**Why this one is different**](docs/WHY-DIFFERENT.md) (a 2‑minute read).
+👉 Fuller story: [**Why this one is different**](docs/WHY-DIFFERENT.md) · the backstory: [**The article**](docs/ARTICLE.md).
 
 ---
 
-## Try it / build your own
+## Build your own
 
-You don't need to be an expert.
+You don't need to be an expert — and you can hand most of it to an AI coding tool (like Claude Code)
+to execute step by step.
 
-1. Read the short [**build‑your‑own guide**](docs/BUILD-YOUR-OWN.md).
-2. Run the starter script to create your own folder:
+1. Read the [**build‑your‑own guide**](docs/BUILD-YOUR-OWN.md) — a complete, ordered plan.
+2. Scaffold a folder:
    ```bash
    ./scripts/scaffold.sh my-ai-company
    ```
 3. Open `company.yaml`, fill in the blanks, and start with **one** teammate and **one** task.
 
 Helpful files:
-- 🧩 [`examples/company.yaml`](examples/company.yaml) — the one settings file, with blanks to fill in.
+- 🧩 [`examples/company.yaml`](examples/company.yaml) — the one settings file, as a template.
 - 🚦 [`examples/usage-gate.sh`](examples/usage-gate.sh) — the "don't overspend" safety check, explained.
 
 ---
 
 ## Is it safe?
 
-Short answer: **yes, that's the whole point.**
+Short answer: **yes — that's the whole point.**
 
-- It **can't spend money you didn't agree to** — a built‑in check stops it first.
-- Each AI teammate works in a **locked box** — no web unless allowed, and it can't read your passwords.
-- Agents **never get the keys** to your real code — they propose changes; you (or safe auto‑rules) approve.
+- It **can't spend money you didn't agree to** — a built‑in check stops it first (it kept spend at zero).
+- Each AI teammate works in a **locked box** — no web unless allowed, and it can't read your secrets.
+- Agents **never get the keys** to your real code — they work on a **fork** and propose changes.
+- **Every merge needs a review** — the AI Tech Lead/Security must approve the diff first.
 - There's a **STOP button** that halts everything instantly.
 
 ---
@@ -91,36 +117,36 @@ You can skip this — it's here for people who want the technical picture.
 
 ```mermaid
 flowchart TB
-    subgraph LAPTOP["💻 One laptop · WSL2"]
-        ORCH["🧠 Orchestrator<br/>hands out tasks"]
+    subgraph LAPTOP["💻 One laptop · WSL2 (Linux)"]
+        ORCH["🧠 Orchestrator<br/>hands out tasks, runs the agents"]
         TEAM["👥 AI agents<br/>each in a sandbox"]
-        OPS["⚙️ Ops: budget guard ·<br/>monitor · backups · alerts"]
+        OPS["⚙️ Ops: usage gate · governor ·<br/>monitor · backups · alerts"]
     end
-    GH["🐙 GitHub<br/>forks → pull requests"]
-    CHAT["📨 Chat alerts"]
+    HERMES["📨 Telegram front door"]
+    GH["🐙 GitHub<br/>bot forks → pull requests"]
 
+    YOU["🧑 You"] <--> HERMES <--> ORCH
     ORCH --> TEAM --> GH
-    OPS -. watches & can stop .- TEAM
-    OPS --> CHAT
+    OPS -. watches & can STOP .- TEAM
 
     classDef a fill:#e8f0fe,stroke:#1a73e8,color:#0b2a66;
     classDef b fill:#e6f4ea,stroke:#1e8e3e,color:#0b3d1e;
     classDef c fill:#fff4e5,stroke:#e8a33d,color:#5a3a0b;
-    class ORCH a;
+    class ORCH,YOU a;
     class TEAM,GH b;
-    class OPS,CHAT c;
+    class OPS,HERMES c;
     style LAPTOP fill:#f8f9fb,stroke:#5f6368,color:#202124;
 ```
 
-**The "don't overspend" check** (it refuses to run if anything looks off)
+**The "don't overspend" gate** (it refuses to run if anything looks off — this is why spend stayed at zero)
 
 ```mermaid
 flowchart TD
     START([▶️ About to run]) --> HALT{STOP button on?}
     HALT -- yes --> DENY[⏸️ Wait]
-    HALT -- no --> BUDGET{near the budget limit?}
+    HALT -- no --> BUDGET{near the usage limit?}
     BUDGET -- yes --> DENY
-    BUDGET -- no --> SAFE{everything healthy?}
+    BUDGET -- no --> SAFE{everything healthy &<br/>usage data fresh?}
     SAFE -- no --> DENY
     SAFE -- yes --> GO[✅ Go]
 
@@ -132,35 +158,55 @@ flowchart TD
     class HALT,BUDGET,SAFE chk;
 ```
 
-**The team**
+**The team** (the real org chart)
 
 ```mermaid
 flowchart TD
-    CEO["👑 You"] --> LEAD["🧭 Tech Lead"]
-    CEO --> SEC["🛡️ Security"]
-    LEAD --> ENG["👷 Engineer"]
-    LEAD --> QA["🔎 Tester"]
-    LEAD --> REL["🚀 Release"]
+    CEO["👑 CEO"]
+    LEAD["🧭 Tech Lead"]
+    PO["🗂️ Product Owner"]
+    SEC["🛡️ Security"]
+    ENG["👷 Engineer"]
+    REL["🚀 Release"]
+    QA["🔎 QA"]
+    DES["🎨 Designer"]
+    OPSA["🩺 Maintenance + Watchdog"]
 
-    classDef lead fill:#e8f0fe,stroke:#1a73e8,color:#0b2a66;
+    CEO --> LEAD & PO & SEC & OPSA
+    LEAD --> ENG & REL
+    PO --> QA & DES
+    SEC -. reviews risky changes .-> ENG
+
+    classDef boss fill:#e8f0fe,stroke:#1a73e8,color:#0b2a66;
     classDef ic fill:#e6f4ea,stroke:#1e8e3e,color:#0b3d1e;
-    class CEO,LEAD ic;
-    class ENG,QA,REL ic;
-    class SEC lead;
+    classDef guard fill:#fde8e8,stroke:#c0392b,color:#7a1f1f;
+    class CEO,LEAD,PO boss;
+    class ENG,REL,QA,DES,OPSA ic;
+    class SEC guard;
 ```
 
-Want the full technical write‑up? It's in [`docs/ARTICLE.md`](docs/ARTICLE.md) and
-[`docs/BUILD-YOUR-OWN.md`](docs/BUILD-YOUR-OWN.md).
+Full write‑ups: [`docs/ARTICLE.md`](docs/ARTICLE.md) and [`docs/BUILD-YOUR-OWN.md`](docs/BUILD-YOUR-OWN.md).
 
 </details>
 
 ---
 
+## Honest limitations
+
+- A cheap **pay‑per‑token lane** (for high‑volume or background agents) is **deferred**: the chosen
+  agent runtime (a Claude‑Code harness) only speaks the Anthropic model protocol, so it can't run
+  non‑Anthropic models through the budget proxy. Those extra roles would need a different, OpenAI‑
+  protocol runtime. The company works fully without them — the core team runs on the subscription lane.
+- The Telegram front door runs a separate agent tool; on machines with strict app‑control it needs a
+  signed build (see the build guide's gotchas).
+
+---
+
 ## What's *not* in this repo (your privacy)
 
-This is a public explainer. It has **no secrets and no personal data** — no tokens, no emails, no
-account names, no file paths, no real project code. Just the idea, a settings template with blanks,
-and a couple of simple scripts. Keep your real secrets in a safe place, **never in a repo**.
+This is a public explainer — **documentation, not the runtime**. It has **no secrets and no personal
+data**: no tokens, no emails, no account names, no file paths, no real project code. Just the idea, a
+settings template, and a couple of scripts. Keep real secrets in a vault, **never in a repo**.
 
 ---
 
@@ -168,5 +214,5 @@ and a couple of simple scripts. Keep your real secrets in a safe place, **never 
 
 [MIT](LICENSE) — free to use, copy, and change. No warranty.
 
-> Built as a weekend experiment: *can a small AI "company" run safely and cheaply on one laptop?*
-> This repo is the friendly, sanitized answer.
+> The question was: *can a small AI "company" run safely and cheaply on one laptop — and actually ship?*
+> This repo is the sanitized answer. It can, and it did.
