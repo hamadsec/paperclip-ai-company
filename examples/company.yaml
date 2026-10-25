@@ -53,15 +53,31 @@ agents:
   - { name: "Iiris",  role: "designer",         lane: "max", model: "<SUBSCRIPTION_MODEL>",       reports_to: "product_owner", research: false }
   - { name: "Arvo",   role: "maintenance",      lane: "max", model: "<SUBSCRIPTION_MODEL_CHEAP>", reports_to: "ceo",        research: false }
   - { name: "Nuutti", role: "watchdog",         lane: "max", model: "<SUBSCRIPTION_MODEL_CHEAP>", reports_to: "ceo",        research: false }
-  # Deferred to a pay-per-token lane (needs an OpenAI-protocol runtime): a 2nd engineer,
+  # Optional pay-per-token lane (needs an OpenAI-protocol runtime): a 2nd engineer,
   # procurement, finance, and background briefs/learning/reflection agents.
+  #
+  # Domain-expert BENCH: seats that exist per project. They stay `enabled: false` until a
+  # Staffing Decision (Product proposes, CEO raises, YOU decide) names them; flip to true to
+  # create the agent, back to false when the project closes. Agents never create agents.
+  - { name: "Ayla",   role: "domain_expert", discipline: "clinical_psychology", lane: "max", model: "<SUBSCRIPTION_MODEL>", reports_to: "product_owner", research: true, enabled: false }
+  - { name: "Noor",   role: "domain_expert", discipline: "nutrition_science",   lane: "max", model: "<SUBSCRIPTION_MODEL>", reports_to: "product_owner", research: true, enabled: false }
+
+# Disciplines a domain_expert seat can hold: display name + the vetted research hosts (exact
+# hostnames; your Security Officer reviews every addition before it is deployed). Each key also has
+# a short discipline note (what good looks like, standards to cite, non-negotiables, failure modes)
+# that is rendered into the expert's instructions.
+disciplines:
+  clinical_psychology: { name: "Clinical Psychology", research_hosts: ["pubmed.ncbi.nlm.nih.gov", "www.nice.org.uk", "www.who.int", "www.cochranelibrary.com", "www.apa.org"] }
+  nutrition_science:   { name: "Nutrition Science",   research_hosts: ["pubmed.ncbi.nlm.nih.gov", "www.who.int", "www.efsa.europa.eu", "www.cochranelibrary.com"] }
 
 # Which roles review which kind of change (applied when tasks are created / at merge time).
 review_policy:
   engineering:        { reviewers: ["Ilmari"],          max_rounds: 3 }
   ui:                 { reviewers: ["Ilmari", "Iiris"], max_rounds: 3 }
   security_sensitive: { reviewers: ["Ilmari", "Saga"],  max_rounds: 3 }  # deps, CI, scripts, auth, secrets, network
+  domain_sensitive:   { reviewers: ["Ilmari", "<project's domain experts>"], max_rounds: 3 }  # content the domain brief governs; both must approve the same commit
   release:            { reviewers: ["Minttu"], approval: ["board"] }
+  staffing:           { proposes: ["Eero"], raises: ["Aino"], approval: ["board"] }  # one Staffing Decision per brief; "none needed" is a valid answer
 
 # GitHub: agents work on forks; the bot has NO write access upstream.
 github:

@@ -70,6 +70,10 @@ You set direction and approve the big calls; the team does the typing *and* the 
 - 👥 **A real team, not a chaotic swarm.** 10 roles, each with one job and a manager — [meet the team](docs/TEAM.md).
 - 🧭 **Every change is reviewed.** An AI Tech Lead (or Security, for risky changes) reads the diff and
   signs off before anything merges — a review *gate*, not a rubber stamp.
+- 🎓 **Domain experts on demand.** For a brief that needs more than software skill — mental health,
+  nutrition, finance, policy — leadership proposes which expert roles the project needs, you switch
+  those seats on, and they write the project's knowledge pack and **review the content** the same way
+  the Tech Lead reviews the code. [How it works](docs/TEAM.md#domain-experts-on-demand).
 - 🔒 **Safe by default.** Sandboxed agents, hidden secrets, a locked‑down machine; they propose, you (or
   safe rules) approve.
 - 🎛️ **You stay in control.** A big "stop" button, and a Telegram front door to drive it from your phone.
@@ -193,10 +197,14 @@ Full write‑ups: [`docs/ARTICLE.md`](docs/ARTICLE.md) and [`docs/BUILD-YOUR-OWN
 
 ## Honest limitations
 
-- A cheap **pay‑per‑token lane** (for high‑volume or background agents) is **deferred**: the chosen
-  agent runtime (a Claude‑Code harness) only speaks the Anthropic model protocol, so it can't run
-  non‑Anthropic models through the budget proxy. Those extra roles would need a different, OpenAI‑
-  protocol runtime. The company works fully without them — the core team runs on the subscription lane.
+- The cheap **pay‑per‑token lane** (for high‑volume or background agents) needed a **second agent
+  runtime**: the Claude‑Code harness only speaks the Anthropic model protocol, so non‑Anthropic models
+  run through an OpenAI‑protocol harness (OpenCode) behind the budget proxy, in a filesystem jail. It
+  works, but it is a second thing to keep patched, and those agents get full network egress unless you
+  add a filtering proxy.
+- **Domain experts are stand‑ins, not credentials.** For health, finance or legal topics the setup
+  requires a real practitioner's sign‑off before anything is "done (deployed)". The expert agents
+  prepare that review; they don't replace it.
 - The Telegram front door runs a separate agent tool; on machines with strict app‑control it needs a
   signed build (see the build guide's gotchas).
 

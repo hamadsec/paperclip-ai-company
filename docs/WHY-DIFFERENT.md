@@ -43,7 +43,16 @@ A big **STOP** button halts everything at once. Anything risky — security, set
 a human. And a **Telegram front door** lets you drive the whole thing from your phone: text "status"
 for an accurate read, or send a brief and watch it become a task.
 
-## 7. It's proven, not theoretical ✅
+## 7. It brings in the right expert 🎓
+
+Software skill isn't enough for a sleep‑coaching app, a meal planner or a budgeting tool. When a brief
+needs a psychologist, a nutrition scientist or an economist, the team **says so**: leadership proposes
+the expert roles the project needs, you switch those seats on, and the experts write the project's
+knowledge pack, check the acceptance criteria, and **review the content** before it merges — a second
+gate next to the code review. When the project ends, the seats go back on the bench. (They're stand‑ins
+for real practitioners, not replacements — health and finance work still gets a human sign‑off.)
+
+## 8. It's proven, not theoretical ✅
 
 The headline test: hand it a one‑line brief and don't touch the keyboard. The product owner planned a
 feature, the engineer built it with a test, the reviewer approved the diff, and it **merged and served**
@@ -60,6 +69,7 @@ feature, the engineer built it with a test, the reviewer approved the diff, and 
 | A swarm of bots | A small **team of 10 roles** |
 | Merges on a rubber stamp | **A reviewer reads the diff and gates the merge** |
 | Broad access to your stuff | **Sandboxed**, can't leak secrets, works on a fork |
+| Builds a health app from general knowledge | **Brings in domain experts per project**, who write the brief and review the content |
 | You babysit every step | **Auto‑ships the easy stuff**, asks you about the rest |
 | A cool demo | **Proven end‑to‑end** — planned, built, reviewed, shipped |
 

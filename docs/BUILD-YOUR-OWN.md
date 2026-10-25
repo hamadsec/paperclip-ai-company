@@ -129,6 +129,40 @@ flowchart TD
   skill that files your briefs as CEO tasks and relays status. Now you can **run it from your phone**.
 - **Produces:** "text the company, get a result."
 
+### Phase K — Domain experts on demand (when a brief needs more than software skill)
+- Add a **staffing step** to the Product Owner and CEO role files: for every brief, propose which
+  expert disciplines it needs (or "none needed") and raise it as **one decision** for you. Agents
+  propose; **you** provision, by switching bench seats on in `company.yaml`.
+- Add one `domain-expert` role file, rendered per discipline from a short **discipline note** (what
+  good looks like, standards to cite, non‑negotiables, failure modes). Bench seats start disabled.
+- Give experts a **separate research lock** with a short vetted host list (PubMed, WHO, NICE, …) —
+  and have your Security Officer **vet the list as a task** before you deploy it. Ours answered within
+  minutes with provenance per host and conditions (exact hostnames, no new hosts without review).
+- Extend the merge‑bot: a **rules file** (repo / expert / path pattern) opens a "Domain review" task
+  next to the Tech Lead's review; merge only when **every** review approves the same commit.
+- **Produces:** projects in health, nutrition, finance or policy get a real domain check — brief,
+  acceptance criteria and content — without a permanent extra payroll. Keep 2–3 expert seats active at
+  once and measure before adding more.
+
+```mermaid
+flowchart TD
+    BRIEF["brief arrives"] --> PROP["PO proposes disciplines<br/>CEO raises one decision"]
+    PROP --> YOU{you}
+    YOU -- enable seats --> DB["expert writes docs/domain/&lt;discipline&gt;.md"]
+    DB --> OK["DOMAIN-OK on acceptance criteria"]
+    OK --> BUILD["engineers build"]
+    BUILD --> PR["PR touches governed content?"]
+    PR -- yes --> TWO["Tech Lead review + Domain review<br/>(parallel, both must approve)"]
+    PR -- no --> ONE["Tech Lead review"]
+    TWO --> MERGE["✅ merge"]; ONE --> MERGE
+    YOU -- none needed --> BUILD
+
+    classDef ok fill:#e6f4ea,stroke:#1e8e3e,color:#0b3d1e;
+    classDef chk fill:#fff4e5,stroke:#e8a33d,color:#5a3a0b;
+    classDef you fill:#f3e8fd,stroke:#8e44ad,color:#3b1d5e;
+    class MERGE,DB,OK,BUILD ok; class PROP,PR,TWO,ONE chk; class YOU you;
+```
+
 ---
 
 ## Gotchas we learned (save yourself the pain)
@@ -150,6 +184,14 @@ flowchart TD
   quotes mangles variables. Stage a script file and run that instead.
 - **Config → deploy, not live edits.** Change the one config file and re‑run your deploy/reconcile
   step. Never hand‑edit inside the running VM.
+- **A config flag is only real if something reads it.** Our `research: true` flag sat in the config
+  for weeks while the reconciler never wrote it into the agents' environment — both "researchers" ran
+  with no web access and nobody noticed, because nothing failed. When you add a switch, make the
+  reconciler **write it and diff it**, and check the runtime log once to see it take effect.
+- **Role files drift unless they are rendered.** Typing agent names and managers into fifteen
+  instruction files meant two renames later nine files still named people who no longer existed. Write
+  role files once per *role* with placeholders, render them per *agent* from the config, and keep the
+  shared rules in one included block.
 
 ---
 
